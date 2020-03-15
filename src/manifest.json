@@ -9,11 +9,12 @@
     "matches": ["<all_urls>"],
     "js": [
       "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-      "content_scripts/SearchEngine/index.js",
-      "content_scripts/SearchEngine/BingEngine.js",
-      "content_scripts/SearchEngine/GoogleEngine.js",
-      "content_scripts/SearchEngine/DuckEngine.js",
-      "content_scripts/SearchEngineFactory/index.js",
+      "content_scripts/Result.js",
+      "common/SearchEngine.js",
+      "common/BingEngine.js",
+      "common/GoogleEngine.js",
+      "common/DuckEngine.js",
+      "common/SearchEngineFactory.js",
       "content_scripts/ContentManager.js",
       "content_scripts/main.js"
     ],
@@ -29,11 +30,12 @@
   "background": {
     "scripts": [
       "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-      "background_scripts/ResultGetter/MainGetter.js",
-      "background_scripts/ResultGetter/GoogleGetter.js",
-      "background_scripts/ResultGetter/BingGetter.js",
-      "background_scripts/ResultGetter/DuckGetter.js",
-      "background_scripts/ResultGetter/index.js",
+      "common/SearchEngine.js",
+      "common/BingEngine.js",
+      "common/GoogleEngine.js",
+      "common/DuckEngine.js",
+      "common/SearchEngineFactory.js",
+      "background_scripts/ResultGetter.js",
       "background_scripts/BackgroundExtension.js",
       "background_scripts/main.js"
     ]

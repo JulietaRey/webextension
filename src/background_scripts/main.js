@@ -1,9 +1,6 @@
 const startBackground = () => {
   console.log('Starting background... ')
   const backgroundExt = new BackgroundExtension();
-  browser.browserAction.onClicked.addListener(async () => {
-    backgroundExt.toggleEnabled();
-  })
   browser.webNavigation.onCompleted.addListener(async ({ url }) => {
     backgroundExt.handleLoadedPage(url)
   })

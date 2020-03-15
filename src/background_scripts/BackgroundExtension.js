@@ -1,15 +1,7 @@
 class BackgroundExtension {
   constructor() {
-    this.enabled = false;
-    this.searchEngine = null;
+    this.searchEngine = new ResultGetter();
     this.currentTab = null;
-  }
-
-  toggleEnabled() {
-    this.enabled = !this.enabled;
-    if (this.enabled) {
-      this.resultGetter = new ResultGetter();
-    }
   }
 
   isValidUrl(url) {
@@ -20,8 +12,8 @@ class BackgroundExtension {
   }
 
   retrieveSearch({ searchText, searchEngine }) {
-    this.resultGetter.setCurrentEngine(searchEngine);
-    return this.resultGetter.getSearchResults(searchText)
+    this.searchEngine.setCurrentEngine(searchEngine);
+    return this.searchEngine.getSearchResults(searchText)
       .then(results => {
         browser.tabs.sendMessage(this.currentTab, {
           call: "showResultsInSearch",
@@ -35,8 +27,8 @@ class BackgroundExtension {
   }
 
   handleLoadedPage(url) {
-    if (this.enabled && this.isValidUrl(url)) {
-      this.getCurrentTab()
+    if (this.isValidUrl(url)) {
+      return this.getCurrentTab()
         .then(tabId => {
           browser.tabs.sendMessage(tabId, {
             call: "setSearchEngine",
@@ -44,10 +36,14 @@ class BackgroundExtension {
               url
             }
           });
+          return Promise.resolve();
         })
         .catch(console.error)
+    } else {
+      return Promise.resolve();
     }
   }
+
   getCurrentTab() {
     return browser.tabs.query({
       active: true,

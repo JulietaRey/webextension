@@ -4,7 +4,7 @@ class SearchEngineFactory {
       return new GoogleEngine();
     } else if (url.includes('bing')) {
       return new BingEngine();
-    } else if (url.includes('duckduck')) {
+    } else if (url.includes('duck')) {
       return new DuckEngine();
     }
     return null;
