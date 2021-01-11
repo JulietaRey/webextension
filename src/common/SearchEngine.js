@@ -56,6 +56,7 @@ class SearchEngine {
   }
 
   addResults(results) {
+    console.log(results);
     const divList = document.querySelectorAll(this.config.divListClass);
     divList.forEach(parentNode => {
       const link = parentNode.querySelector(this.config.linkResultClass);

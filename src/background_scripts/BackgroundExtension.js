@@ -1,6 +1,7 @@
 class BackgroundExtension {
   constructor() {
     this.searchEngine = new ResultGetter();
+    this.mockResponses = new PeerResultsChecker();
     this.currentTab = null;
   }
 
@@ -11,8 +12,15 @@ class BackgroundExtension {
     return url.includes('duckduckgo.com/?q=')
   }
 
+  loadPeerResponse() {
+    browser.tabs.sendMessage(this.currentTab, {
+      call: ''
+    })
+  }
+
   retrieveSearch({ searchText, searchEngine }) {
     this.searchEngine.setCurrentEngine(searchEngine);
+    this.mockResponses.triggerSearch(this.loadPeerResponse);
     return this.searchEngine.getSearchResults(searchText)
       .then(results => {
         browser.tabs.sendMessage(this.currentTab, {
