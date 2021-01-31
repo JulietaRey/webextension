@@ -1,64 +1,135 @@
-class BackgroundExtension {
+class BackgroundExtension extends AbstractP2PExtensionBackground {
   constructor() {
+    super();
     this.searchEngine = new ResultGetter();
     this.mockResponses = new PeerResultsChecker();
     this.currentTab = null;
+    this.peers = [];
+  }
+
+  setPeers() {
+    let peers;
+    try {
+      let listaUsuarios = backgroundExt.getDataCallBack();
+      console.log("Usuarios peers");
+      console.log(listaUsuarios);
+      peers = [];
+      for (let i in listaUsuarios) {
+        if (listaUsuarios.hasOwnProperty(i)) {
+          peers.push(listaUsuarios[i]);
+        }
+      }
+      backgroundExt.peers = peers;
+    } catch (e) {
+      console.log("Error al cargar lista de usuarios");
+      console.log(e);
+    }
+  }
+
+  getExtensionName() {
+    return "My Extension";
+  }
+
+  getExtensionId() {
+    return "webextension@info";
   }
 
   isValidUrl(url) {
-    if (url.includes('google') || url.includes('bing')) {
-      return url.includes('search?');
+    if (url.includes("google") || url.includes("bing")) {
+      return url.includes("search?");
     }
-    return url.includes('duckduckgo.com/?q=')
+    return url.includes("duckduckgo.com/?q=");
   }
 
-  loadPeerResponse() {
+  loadPeerResponse(results) {
     browser.tabs.sendMessage(this.currentTab, {
-      call: ''
-    })
+      call: "updateBubble",
+      args: {
+        results,
+      },
+    });
+  }
+
+  askPeers(searchText, searchEngine) {
+    this.sendRequest(
+      {
+        searchText,
+        searchEngine,
+        automatic: true,
+        withoutcheck: true,
+      },
+      "All"
+    );
+  }
+
+  async answerPeer(msg, peer) {
+    console.log("Request de peer recibido");
+    console.log(msg, peer);
+    // this.searchEngine.setCurrentEngine(msg.searchEngine);
+    // this.searchEngine.getSearchResults(msg.searchText).then((results) => {
+    //   console.log("Responsiendo a peer", results);
+    //   this.sendResponse(
+    //     {
+    //       something: "llaa",
+    //       automatic: true,
+    //       withoutcheck: true,
+    //     },
+    //     peer
+    //   );
+    //   console.log("response enviada!");
+    // });
   }
 
   retrieveSearch({ searchText, searchEngine }) {
     this.searchEngine.setCurrentEngine(searchEngine);
-    this.mockResponses.triggerSearch(this.loadPeerResponse);
-    return this.searchEngine.getSearchResults(searchText)
-      .then(results => {
+    this.askPeers(searchText, searchEngine);
+    return this.searchEngine
+      .getSearchResults(searchText)
+      .then((results) => {
+        console.log(this.peers);
         browser.tabs.sendMessage(this.currentTab, {
           call: "showResultsInSearch",
           args: {
-            results
-          }
+            results,
+            peerCount: backgroundExt.peers.length,
+          },
         });
         return Promise.resolve();
       })
-      .catch(console.error)
+      .catch(console.error);
   }
 
   handleLoadedPage(url) {
+    console.log(
+      "🚀 ~ file: BackgroundExtension.js ~ line 105 ~ BackgroundExtension ~ handleLoadedPage ~ url",
+      url
+    );
     if (this.isValidUrl(url)) {
       return this.getCurrentTab()
-        .then(tabId => {
+        .then((tabId) => {
           browser.tabs.sendMessage(tabId, {
             call: "setSearchEngine",
             args: {
-              url
-            }
+              url,
+            },
           });
           return Promise.resolve();
         })
-        .catch(console.error)
+        .catch(console.error);
     } else {
       return Promise.resolve();
     }
   }
 
   getCurrentTab() {
-    return browser.tabs.query({
-      active: true,
-      currentWindow: true
-    }).then(tabs => {
-      this.currentTab = tabs[0].id
-      return this.currentTab
-    });
+    return browser.tabs
+      .query({
+        active: true,
+        currentWindow: true,
+      })
+      .then((tabs) => {
+        this.currentTab = tabs[0].id;
+        return this.currentTab;
+      });
   }
 }
