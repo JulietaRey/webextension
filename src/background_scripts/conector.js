@@ -597,6 +597,11 @@ class AbstractP2PExtensionBackground {
   }
 
   sendRequest(msg, peer) {
+    console.log(
+      "🚀 ~ file: conector.js ~ line 600 ~ AbstractP2PExtensionBackground ~ sendRequest ~ msg, peer",
+      msg,
+      peer
+    );
     this.conector.sendDataType(
       this.getExtensionName(),
       this.getExtensionId(),

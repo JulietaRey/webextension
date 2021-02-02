@@ -1,10 +1,11 @@
 class BackgroundExtension extends AbstractP2PExtensionBackground {
+  peers = [];
+
   constructor() {
     super();
     this.searchEngine = new ResultGetter();
     this.mockResponses = new PeerResultsChecker();
     this.currentTab = null;
-    this.peers = [];
   }
 
   setPeers() {
@@ -51,15 +52,22 @@ class BackgroundExtension extends AbstractP2PExtensionBackground {
   }
 
   askPeers(searchText, searchEngine) {
-    this.sendRequest(
-      {
-        searchText,
-        searchEngine,
-        automatic: true,
-        withoutcheck: true,
-      },
-      "All"
-    );
+    console.log("asking peers");
+    try {
+      this.sendRequest(
+        {
+          keywords: {
+            searchText,
+            searchEngine,
+          },
+          automatic: true,
+          withoutcheck: true,
+        },
+        "All"
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async answerPeer(msg, peer) {
@@ -100,10 +108,6 @@ class BackgroundExtension extends AbstractP2PExtensionBackground {
   }
 
   handleLoadedPage(url) {
-    console.log(
-      "🚀 ~ file: BackgroundExtension.js ~ line 105 ~ BackgroundExtension ~ handleLoadedPage ~ url",
-      url
-    );
     if (this.isValidUrl(url)) {
       return this.getCurrentTab()
         .then((tabId) => {
