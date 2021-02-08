@@ -7,10 +7,9 @@ class ResultGetter {
   }
 
   getSearchResults(searchQuery) {
-    return this.currentEngine.getResults(searchQuery)
-    .then(results => {
+    return this.currentEngine.getResults(searchQuery).then((results) => {
       this.resultList = results;
-      return results; 
+      return results;
     });
   }
 }

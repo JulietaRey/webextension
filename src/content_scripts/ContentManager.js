@@ -4,6 +4,7 @@ class ContentManager {
     this.searchText = "";
     this.results = null;
     this.showList = false;
+    this.peerResponses = [];
   }
 
   setSearchEngine({ url }) {
@@ -12,6 +13,14 @@ class ContentManager {
     this.injectMashupButton();
     browser.runtime.sendMessage({
       call: "retrieveSearch",
+      args: {
+        searchText: this.searchText,
+        searchEngine: this.contentEngine.getName(),
+      },
+    });
+    this.peerResponses = [];
+    browser.runtime.sendMessage({
+      call: "askPeers",
       args: {
         searchText: this.searchText,
         searchEngine: this.contentEngine.getName(),
@@ -38,6 +47,10 @@ class ContentManager {
     ]);
   }
 
+  buildMedianText(median) {
+    return `| Posicion promedio ${median.value} (${median.count} de ${this.peerResponses.length})`;
+  }
+
   appendLinks(parent, resultList) {
     return resultList.forEach((resultGroup, groupIndex) => {
       const group = document.createElement("div");
@@ -54,6 +67,13 @@ class ContentManager {
           linkToResult.target = "_blank";
           linkContainer.innerText = `${groupIndex + 1} - ${result.engine} =`;
           linkContainer.appendChild(linkToResult);
+          const median = result.getMedian();
+          if (median) {
+            const medianText = this.buildMedianText(median);
+            const medianSpan = document.createElement("span");
+            medianSpan.innerText = medianText;
+            linkContainer.appendChild(medianSpan);
+          }
           group.appendChild(linkContainer);
         }
       });
@@ -66,6 +86,7 @@ class ContentManager {
   injectResultMashup() {
     const resultList = this.buildResultList();
     const container = document.createElement("div");
+    container.id = "mashup-container";
     container.style.position = "absolute";
     container.style.top = "30px";
     container.style.right = 0;
@@ -108,5 +129,46 @@ class ContentManager {
     document
       .querySelector(this.contentEngine.getMenuSelector())
       .appendChild(buttonContainer);
+  }
+
+  updateResultsMedian(peerResults) {
+    this.results.own = this.findMedianForEach(
+      this.results.own,
+      peerResults.own
+    );
+    this.results.external = this.results.external.map((listOfResults, index) =>
+      this.findMedianForEach(listOfResults, peerResults.external[index])
+    );
+  }
+
+  findMedianForEach(main, peer) {
+    return main.map((result) => {
+      const position = peer.findIndex((peerResult) => {
+        return peerResult.link === result._link;
+      });
+      if (position !== -1) {
+        result.addPosition(position + 1);
+      }
+      return result;
+    });
+  }
+
+  peerAnswered({ results: peerResults }) {
+    const bubbles = document.querySelectorAll("div.bubbles");
+    this.peerResponses = [...this.peerResponses, peerResults];
+    bubbles.forEach((bubble, index) => {
+      const oldText = bubble.innerText;
+      const newText = oldText.split(" de ");
+      const bubbleContent = this.results.own[index];
+      const resultFound = peerResults.own.find(
+        (peerResult) => peerResult.link === bubbleContent._link
+      );
+      if (resultFound) {
+        bubble.innerText = `${+newText[0] + 1} de ${this.peerResponses.length}`;
+      } else {
+        bubble.innerText = `${newText[0]} de ${this.peerResponses.length}`;
+      }
+    });
+    this.updateResultsMedian(peerResults);
   }
 }

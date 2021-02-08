@@ -4,7 +4,7 @@ class GoogleEngine extends SearchEngine {
     this.config = {
       inputQuery: "[name=q]",
       divListClass: "div[class=g]",
-      linkResultClass: "div>div>a",
+      linkResultClass: "div#rso>div>div>div>a",
       menuSelector: "div#hdtb-msb",
     };
     this._name = "google";
@@ -22,5 +22,9 @@ class GoogleEngine extends SearchEngine {
       bing.getOwnResults(searchQuery),
       duck.getOwnResults(searchQuery),
     ]);
+  }
+
+  getInnerText(node) {
+    return node.childNodes[1].innerText;
   }
 }

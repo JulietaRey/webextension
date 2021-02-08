@@ -6,7 +6,6 @@ const startBackground = async () => {
   backgroundExt.connect();
   await backgroundExt.getPeers(backgroundExt.setPeers);
   browser.webNavigation.onCompleted.addListener(async ({ url }) => {
-    console.log("just loaded");
     backgroundExt.handleLoadedPage(url);
   });
 

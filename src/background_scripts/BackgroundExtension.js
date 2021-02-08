@@ -1,26 +1,18 @@
 class BackgroundExtension extends AbstractP2PExtensionBackground {
   peers = [];
-
-  constructor() {
-    super();
-    this.searchEngine = new ResultGetter();
-    this.mockResponses = new PeerResultsChecker();
-    this.currentTab = null;
-  }
+  searchEngine = new ResultGetter();
+  currentTab = null;
 
   setPeers() {
-    let peers;
+    self = backgroundExt;
     try {
       let listaUsuarios = backgroundExt.getDataCallBack();
-      console.log("Usuarios peers");
-      console.log(listaUsuarios);
-      peers = [];
+      self.peers = [];
       for (let i in listaUsuarios) {
         if (listaUsuarios.hasOwnProperty(i)) {
-          peers.push(listaUsuarios[i]);
+          self.peers.push(listaUsuarios[i]);
         }
       }
-      backgroundExt.peers = peers;
     } catch (e) {
       console.log("Error al cargar lista de usuarios");
       console.log(e);
@@ -32,7 +24,7 @@ class BackgroundExtension extends AbstractP2PExtensionBackground {
   }
 
   getExtensionId() {
-    return "webextension@info";
+    return "myextension@me";
   }
 
   isValidUrl(url) {
@@ -51,15 +43,12 @@ class BackgroundExtension extends AbstractP2PExtensionBackground {
     });
   }
 
-  askPeers(searchText, searchEngine) {
-    console.log("asking peers");
+  askPeers({ searchText, searchEngine }) {
     try {
       this.sendRequest(
         {
-          keywords: {
-            searchText,
-            searchEngine,
-          },
+          searchText,
+          searchEngine,
           automatic: true,
           withoutcheck: true,
         },
@@ -70,31 +59,36 @@ class BackgroundExtension extends AbstractP2PExtensionBackground {
     }
   }
 
-  async answerPeer(msg, peer) {
-    console.log("Request de peer recibido");
-    console.log(msg, peer);
-    // this.searchEngine.setCurrentEngine(msg.searchEngine);
-    // this.searchEngine.getSearchResults(msg.searchText).then((results) => {
-    //   console.log("Responsiendo a peer", results);
-    //   this.sendResponse(
-    //     {
-    //       something: "llaa",
-    //       automatic: true,
-    //       withoutcheck: true,
-    //     },
-    //     peer
-    //   );
-    //   console.log("response enviada!");
-    // });
+  async automaticProcessing(msg, peer) {
+    const tempEngine = new ResultGetter();
+    tempEngine.setCurrentEngine(msg.searchEngine);
+    await tempEngine.getSearchResults(msg.searchText).then((results) => {
+      this.sendResponse(
+        {
+          results,
+          automatic: true,
+          withoutcheck: true,
+        },
+        peer
+      );
+    });
+  }
+
+  receiveResponse(msg, peer) {
+    browser.tabs.sendMessage(this.currentTab, {
+      call: "peerAnswered",
+      args: {
+        results: msg.results,
+        peer,
+      },
+    });
   }
 
   retrieveSearch({ searchText, searchEngine }) {
     this.searchEngine.setCurrentEngine(searchEngine);
-    this.askPeers(searchText, searchEngine);
     return this.searchEngine
       .getSearchResults(searchText)
       .then((results) => {
-        console.log(this.peers);
         browser.tabs.sendMessage(this.currentTab, {
           call: "showResultsInSearch",
           args: {

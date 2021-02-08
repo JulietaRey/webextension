@@ -77,7 +77,6 @@ class ConectorP2P {
       // statements
       console.log("Error al instanciar un conectorP2P ", e);
     }
-    console.log("Conector p2p instanciado");
   }
 
   setExtension(objeto) {
@@ -115,7 +114,6 @@ class ConectorP2P {
 
   sendEvent(data) {
     console.log("Evento signal");
-    console.log(data);
     if (this.signal) {
       this.msjData = data;
       let check_msg = JSON.parse(data);
@@ -461,10 +459,6 @@ class ResponseAcceptAction extends ActionAddon {
 
   do(msj_data, conectorp2p = null) {
     try {
-      console.log("Es un response");
-
-      console.log(msj_data);
-
       let responseData = msj_data.data;
 
       conectorp2p.receiveResponse(responseData.data, responseData.source);
@@ -597,11 +591,6 @@ class AbstractP2PExtensionBackground {
   }
 
   sendRequest(msg, peer) {
-    console.log(
-      "🚀 ~ file: conector.js ~ line 600 ~ AbstractP2PExtensionBackground ~ sendRequest ~ msg, peer",
-      msg,
-      peer
-    );
     this.conector.sendDataType(
       this.getExtensionName(),
       this.getExtensionId(),

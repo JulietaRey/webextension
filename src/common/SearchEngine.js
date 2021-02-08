@@ -37,7 +37,7 @@ class SearchEngine {
     return container;
   }
 
-  insertIcons(parentNode, left, right, peerCount) {
+  insertIcons(parentNode, left, right, order) {
     parentNode.style.position = "relative";
     const div = document.createElement("div");
     div.style.height = "30px";
@@ -50,20 +50,22 @@ class SearchEngine {
     div.appendChild(this.createIcon(this.external[0], left));
     div.appendChild(this.createIcon(this.external[1], right));
     const bubble = document.createElement("div");
-
+    bubble.id = `bubble-${order}`;
+    bubble.className = `bubbles`;
     bubble.style["border"] = "2px solid black";
     bubble.style["border-radius"] = "50%";
     bubble.style.padding = "10px 4px";
     bubble.style["font-size"] = "12px";
-    bubble.innerText = `0 de ${peerCount}`;
+    bubble.innerText = `0 de 0`;
     div.appendChild(bubble);
     parentNode.appendChild(div);
   }
 
-  addResults(results, peerCount) {
+  addResults(results) {
     const divList = document.querySelectorAll(this.config.divListClass);
-    divList.forEach((parentNode) => {
+    divList.forEach((parentNode, index) => {
       const link = parentNode.querySelector(this.config.linkResultClass);
+
       if (link) {
         const left = results[0].findIndex(
           (r) => decodeURIComponent(r.link) === link.href
@@ -71,7 +73,7 @@ class SearchEngine {
         const right = results[1].findIndex(
           (r) => decodeURIComponent(r.link) === link.href
         );
-        this.insertIcons(parentNode, left, right, peerCount);
+        this.insertIcons(parentNode, left, right, index);
       }
     });
   }
@@ -93,13 +95,19 @@ class SearchEngine {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         const links = [];
-        doc
-          .querySelectorAll(this.config.linkResultClass)
-          .forEach((a) =>
-            links.push({ title: a.innerText, link: a.href, engine: this._name })
-          );
+        doc.querySelectorAll(this.config.linkResultClass).forEach((a) => {
+          links.push({
+            title: this.getInnerText(a),
+            link: a.href,
+            engine: this._name,
+          });
+        });
         return links;
       });
+  }
+
+  getInnerText(a) {
+    return a.innerText;
   }
 
   getExternalResults() {
